@@ -486,10 +486,12 @@ def compare_seq(seqA, seqB, idA=None, idB=None, con_score="y"):
         else:
             ConservationB.append(float(max_count/(len(B))))
 
+        # Score wird für jede Iteration zurückgesetzt
+        score = 0
+        
         # Überprüfen, welche Gruppe mehr Sequenzen hat
         if len(A) > len(B):
             for j in range(len(A)):
-                
                 if j < len(B):
                     aa1, aa2 = A[j], B[j]
                 else:
@@ -497,10 +499,9 @@ def compare_seq(seqA, seqB, idA=None, idB=None, con_score="y"):
                     aa2 = MostCommonB[i]
 
                 if aa1 == "-" or aa2 == "-":
-                    score = 0
+                    score += 0
             
                 else:
-                    score = 0
                     if aa1 == aa2:  # Keine Mutation -> Score = 0
                         score += 0
                         continue
@@ -515,8 +516,7 @@ def compare_seq(seqA, seqB, idA=None, idB=None, con_score="y"):
                     score += abs(blosum_score) * (1 + chem_diff)
 
         elif len(A) < len(B):
-            for j in range(len(B)):
-                
+            for j in range(len(B)):     
                 if j < len(A):
                     aa1, aa2 = A[j], B[j]
                 else:
@@ -524,10 +524,9 @@ def compare_seq(seqA, seqB, idA=None, idB=None, con_score="y"):
                     aa2 = B[j]
 
                 if aa1 == "-" or aa2 == "-":
-                    score = 0
+                    score += 0
             
                 else:
-                    score = 0
                     if aa1 == aa2:  # Keine Mutation -> Score = 0
                         score += 0
                         continue
@@ -546,10 +545,9 @@ def compare_seq(seqA, seqB, idA=None, idB=None, con_score="y"):
                 aa1, aa2 = A[j], B[j]
 
                 if aa1 == "-" or aa2 == "-":
-                    score = 0
+                    score += 0
                 
                 else:
-                    score = 0
                     if aa1 == aa2:  # Keine Mutation -> Score = 0
                         score += 0
                         continue
@@ -690,10 +688,10 @@ def display_array(result_array, top = 20, lb = None, ub = None, groupA = "A", gr
     fig, ax = plt.subplots(figsize=(13, 8))
 
     # Positive Balken (Standardfarbe Blau)
-    ax.bar(x, y_up, color='blue', label=groupA)
+    ax.bar(x, y_up, color='darkorange', label=groupA)
 
     # Negative Balken (Standardfarbe Rot)
-    ax.bar(x, y_down, color='red', label=groupB)
+    ax.bar(x, y_down, color='darkgreen', label=groupB)
 
     # Beschriftung der Balken mit den häufigsten AS
     for i in range(len(x)):
@@ -737,7 +735,7 @@ if __name__ == "__main__":
     parser.add_argument("--lb", type=int, default=None, help="Untere Grenze")
     parser.add_argument("--ub", type=int, default=None, help="Obere Grenze")
     parser.add_argument("--refseq", type=str, default="1", help="Referenzsequenz (1 oder 2)")
-    parser.add_argument("--save", type=str, default="y", help="Ergebnisse speichern? (y/n)")
+    parser.add_argument("--save", type=str, default="n", help="Ergebnisse speichern? (y/n)")
     parser.add_argument("--display", type=str, default="y", help="Ergebnisse anzeigen? (y/n)")
     parser.add_argument("--directory", type=str, default=os.path.expanduser("~"), help="Speicherort für Ergebnisse")
     parser.add_argument("--name1", type=str, default="Gruppe 1", help="Name der ersten Gruppe")
