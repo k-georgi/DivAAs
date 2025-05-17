@@ -100,7 +100,7 @@ class Constants:
 # endregion
 
 # region FASTA and Sequence-Type
-class FASTAFile:
+class FASTAProcessor:
     # Define constants at the beginning of the class
     NUCLEOTIDES: frozenset[str] = frozenset('ATGCNUatgcnu')
     AMINO_ACIDS: frozenset[str] = frozenset('DEFHIKLMPQRSVWYdefhiklmpqrsvwy')
@@ -461,7 +461,7 @@ class AnnotationReader:
             
         return annotations
 
-class FASTAProcessor:
+class FileProcessor:
     """
     Processes FASTA files and assigns sequences to groups based on different criteria.
     """
@@ -490,13 +490,13 @@ class FASTAProcessor:
             raise ValueError("Error: A FASTA file (file1) must be specified!")
         
         # Load the first FASTA file
-        self.fasta_file1 = FASTAFile(file1)
+        self.fasta_file1 = FASTAProcessor(file1)
         
         # Determine type and behavior based on the second file
         if file2_or_filetxt:
             if file2_or_filetxt.lower().endswith((".fasta", ".fa", ".fas")):
                 # Fall 1: Zweite FASTA-Datei
-                fasta_file2 = FASTAFile(file2_or_filetxt)
+                fasta_file2 = FASTAProcessor(file2_or_filetxt)
                 return self.assigner.assign_separate_files(self.fasta_file1.sequences, fasta_file2.sequences)
             
             elif file2_or_filetxt.lower().endswith(".txt"):
@@ -1815,7 +1815,7 @@ class Output:
         result_df = self.result_df
         
         # Apply filtering based on specific sequence positions if provided
-        if self.seqpos is not None:
+        if len(self.seqpos) > 0:
             # Column for reference sequence (REF_POS_B for ref="2", REF_POS_A for ref="1") 
             ref_col = self.REF_POS_B if self.ref == "2" else self.REF_POS_A
             
@@ -2059,7 +2059,7 @@ class Output:
         save_path = os.path.join(self.directory, "matplotlib_plot.png")
         plt.savefig(save_path, dpi=300, bbox_inches='tight')    
 
-        if self.show == "YES" or "Y":
+        if self.show.upper() in ["YES" or "Y"]:
             plt.show() # Show the plot
 
     def _display_plotly(self, display_df: Optional[pd.DataFrame] = None, nuc_plot: str = 'Y', pm_plot: str = 'Y', id: str = 'Reference Sequence') -> None:
@@ -2275,7 +2275,7 @@ class Output:
             fig.write_html(html_path)
             print(f"Kaleido not installed. Plot saved as HTML to: {html_path}")
 
-        if self.show == "YES" or "Y":
+        if self.show.upper() in ["YES", "Y"]:
             fig.show() # Show the plot
 
 
@@ -2429,7 +2429,7 @@ class Output:
         axes[1].set_xticks(range(len(x)))
         axes[1].set_xticklabels(x_labels, rotation=45, ha='right')
         
-        if self.show == "YES" or "Y":
+        if self.show.upper() in ["YES", "Y"]:
             plt.tight_layout()
             plt.show()
 
@@ -2563,7 +2563,7 @@ class Output:
         plt.tight_layout()
         plt.subplots_adjust(right=0.85)  # Make room for the legend
         
-        if self.show == "YES" or "Y":
+        if self.show.upper() in ["YES" or "Y"]:
             plt.show()
 
         # Save Matplotlib logoplot
@@ -2730,7 +2730,7 @@ class Output:
             xanchor="left"
         )
         
-        if self.show == "YES" or "Y":
+        if self.show.upper() in ["YES", "Y"]:
             fig.show()
 
     def display(self, use_plotly: str = 'Y', nuc_plot: str = 'Y', pm_plot: str = 'Y', create_lp: str = 'Y') -> None:
@@ -2802,11 +2802,11 @@ class Input:
     parser.add_argument("--top", type=int, default=20, help="Number of top scores to display")
     parser.add_argument("--lb", type=int, default=None, help="Lower bound")
     parser.add_argument("--ub", type=int, default=None, help="Upper bound")
-    parser.add_argument("--positions", type=int, nargs='+', default=None, help="Specify individual sequence positions, separated by space key")
+    parser.add_argument("--positions", type=int, nargs='+', default=[], help="Specify individual sequence positions, separated by space key")
     parser.add_argument("--refseq", type=str, default="1", help="Reference sequence (1 or 2)")
     parser.add_argument("--save", type=str, default="y", help="Save results? (y/n)")
     parser.add_argument("--directory", type=str, default=os.path.expanduser("~"), help="Directory to save results")
-    parser.add_argument("--show", type=str, default="y", help="Display results? (y/n)")
+    parser.add_argument("--show", type=str, default="N", help="Display results? (y/n)")
     parser.add_argument("--use_plotly", type=str, default="y", help="Display results with Plotly? (y/n)")
     parser.add_argument("--nuc_plot", type=str, default="n", help="Show seperate graph with triplets (Plotly only)? (y/n)")
     parser.add_argument("--pm_plot", type=str, default="n", help="Show seperate graph with point mutations? (y/n)")
@@ -2821,13 +2821,12 @@ def main():
     # Parse the command-line arguments
     args = Input.parser.parse_args()
 
-    processor = FASTAProcessor()
+    processor = FileProcessor()
     if args.file2:
         seq_A, seq_B = processor.process_files(args.file1, args.file2)
     else:
         seq_A, seq_B = processor.process_files(args.file1)
 
-    #file1 = FASTAFile(args.file1)
     type = processor.fasta_file1.type
 
     if type == 'NUCLEOTIDE':
@@ -2850,7 +2849,7 @@ def main():
     if args.save.upper() in ["Y", "YES"]: 
         output.save()
         output.display(args.use_plotly, args.nuc_plot, args.pm_plot, args.logo_plot)
-    
+
     print("Done")
         
 if __name__ == "__main__":
